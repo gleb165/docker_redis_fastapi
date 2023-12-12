@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
-from app.api.models import Performances
+from app.api.models import PerformancesIn, PerformancesOut
+from app.api import db
 
 per = APIRouter()
 

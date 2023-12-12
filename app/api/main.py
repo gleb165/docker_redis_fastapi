@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.api.models import Performances
 from app.api.db import metadata, database, engine
+
 metadata.create_all(engine)
 
 app = FastAPI()
