@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.models import (PerformancesOut, PerformancesIn, PerformancesUpdate)
 from app.api.db import (performances, database)
 
@@ -7,8 +9,10 @@ async def add_performance(per: PerformancesIn):
     return await database.execute(query=query)
 
 
-async def get_all_performance():
-    return await database.fetch_all(query=performances.select())
+async def get_all_performance(db: AsyncSession):
+    return (await db.execute(performances.select())).all()
+
+    #return await database.fetch_all(query=performances.select())
 
 
 async def get_performance(id: int):
