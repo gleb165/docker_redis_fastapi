@@ -15,7 +15,7 @@ async def get_all_performance(db: AsyncSession):
 
 
 async def get_performance(id: int, db: AsyncSession):
-    return await db.execute(performances.select(performances.c.id == id))
+    return (await db.execute(performances.select(performances.c.id == id))).fetchone()
 
 
 async def delete_performance(id: int):
@@ -23,11 +23,9 @@ async def delete_performance(id: int):
     return await database.execute(query=query)
 
 
-async def update_movie(id: int, per: PerformancesIn, db: AsyncSession):
-    query = (
-        performances
-        .update()
-        .where(performances.c.id == id)
-        .values(**per)
-    )
-    return await db.execute(query=query)
+async def update_performance(id: int, per: PerformancesIn, db: AsyncSession):
+
+    return await db.execute(performances
+                            .update()
+                            .where(performances.c.id == id)
+                            .values(**per))

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Header, HTTPException, Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.db import AsyncSessionLocal
+from app.api.db_maneger import update_performance
 from app.api.models import PerformancesIn, PerformancesUpdate, PerformancesOut
 from app.api import db_maneger
 
@@ -29,21 +30,18 @@ async def add(performances: PerformancesIn, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
 
-@app.put('/{id}',response_model=list[PerformancesIn])
+@app.put('/{id}', response_model=PerformancesIn)
 async def update(id: int, performances: PerformancesUpdate, db: AsyncSession = Depends(get_db)):
     perfo = await db_maneger.get_performance(id, db)
     if not perfo:
         raise HTTPException(status_code=404, detail="Not found")
 
-
-    update_data = performances.dict(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(perfo, key, value)
+    await update_performance(id, performances.dict(exclude_unset=True), db)
 
     await db.commit()
-    await db.refresh(perfo)
+    return await db_maneger.get_performance(id, db)
 
-    return perfo
+
 
 
 
