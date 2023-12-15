@@ -9,6 +9,7 @@ app = FastAPI()
 
 
 
+
 async def get_db():
     async_db = AsyncSessionLocal()
     try:
@@ -22,27 +23,28 @@ async def get_all_(db: AsyncSession = Depends(get_db)):
     return await db_maneger.get_all_performance(db)
 
 
-@app.post('/', status_code=201)
-async def add(performances: PerformancesIn):
-    per_id = await db_maneger.add_performance(performances)
-    response = {
-        'id': per_id,
-        **performances.dict()
-    }
-    return response
+@app.post('/')
+async def add(performances: PerformancesIn, db: AsyncSession = Depends(get_db)):
+    await db_maneger.add_performance(performances, db)
+    await db.commit()
 
 
-@app.put('/{id}')
-async def update(id: int, performances: PerformancesIn):
-    perfo = await db_maneger.get_performance(id)
+@app.put('/{id}',response_model=list[PerformancesIn])
+async def update(id: int, performances: PerformancesUpdate, db: AsyncSession = Depends(get_db)):
+    perfo = await db_maneger.get_performance(id, db)
     if not perfo:
-        raise HTTPException(status_code=404, detail="not found")
+        raise HTTPException(status_code=404, detail="Not found")
+
+
     update_data = performances.dict(exclude_unset=True)
-    per_in_db = PerformancesIn(**perfo)
+    for key, value in update_data.items():
+        setattr(perfo, key, value)
 
-    updated_perfo = per_in_db.copy(update=update_data)
+    await db.commit()
+    await db.refresh(perfo)
 
-    return await db_maneger.update_movie(id, updated_perfo)
+    return perfo
+
 
 
 @app.delete('/{id}')
