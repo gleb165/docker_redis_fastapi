@@ -18,9 +18,9 @@ async def get_performance(id: int, db: AsyncSession):
     return (await db.execute(performances.select(performances.c.id == id))).fetchone()
 
 
-async def delete_performance(id: int):
+async def delete_performance(id: int, db: AsyncSession):
     query = performances.delete().where(performances.c.id == id)
-    return await database.execute(query=query)
+    return await db.execute(query)
 
 
 async def update_performance(id: int, per: PerformancesIn, db: AsyncSession):

@@ -46,8 +46,12 @@ async def update(id: int, performances: PerformancesUpdate, db: AsyncSession = D
 
 
 @app.delete('/{id}')
-async def delete(id: int, performances: PerformancesIn):
-    perfo = await db_maneger.get_performance(id)
+async def delete(id: int, db: AsyncSession = Depends(get_db)):
+    perfo = await db_maneger.get_performance(id, db)
     if not perfo:
         raise HTTPException(status_code=404, detail="not found")
-    return await db_maneger.delete_performance(id)
+
+    await db_maneger.delete_performance(id, db)
+
+    await db.commit()
+    return {'message': 'performance delete'}
