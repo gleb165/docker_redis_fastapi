@@ -24,6 +24,11 @@ async def get_all_(db: AsyncSession = Depends(get_db)):
     return await db_maneger.get_all_performance(db)
 
 
+@app.get('/{id}', response_model=PerformancesIn)
+async def get_one(id: int, db: AsyncSession = Depends(get_db)):
+    return await db_maneger.get_performance(id, db)
+
+
 @app.post('/')
 async def add(performances: PerformancesIn, db: AsyncSession = Depends(get_db)):
     await db_maneger.add_performance(performances, db)
