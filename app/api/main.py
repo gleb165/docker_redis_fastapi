@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Header, HTTPException, Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.db import AsyncSessionLocal
-from app.api.db_maneger import update_performance
-from app.api.models import PerformancesIn, PerformancesUpdate, PerformancesOut
-from app.api import db_maneger
+from app.api.db_model import AsyncSessionLocal
+from app.api.db_maneger import update_performance, update_shows, update_places
+from app.api.models import (PerformancesIn, PerformancesUpdate, PerformancesOut, placesIn, placesOut, placesUpdate, showsIn, showsOut, showUpdate)
+from app.api import db_maneger, db_model
 
 app = FastAPI()
 
@@ -31,8 +31,13 @@ async def get_one(id: int, db: AsyncSession = Depends(get_db)):
 
 @app.post('/')
 async def add(performances: PerformancesIn, db: AsyncSession = Depends(get_db)):
+    db_per = db_model.Table()
     await db_maneger.add_performance(performances, db)
     await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+
+    return {'message': "performance add"}
 
 
 @app.put('/{id}', response_model=PerformancesIn)
@@ -59,4 +64,102 @@ async def delete(id: int, db: AsyncSession = Depends(get_db)):
     await db_maneger.delete_performance(id, db)
 
     await db.commit()
+    for instance in db:
+        await db.refresh(instance)
     return {'message': 'performance delete'}
+
+
+@app.get('/places/', response_model=list[placesOut])
+async def get_all_(db: AsyncSession = Depends(get_db)):
+    return await db_maneger.get_all_places(db)
+
+
+@app.post('/places/')
+async def add(places: placesIn, db: AsyncSession = Depends(get_db)):
+    await db_maneger.add_places(places, db)
+    await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+
+    return {'message': "performance add"}
+
+
+@app.get('/places/{place_id}', response_model=placesIn)
+async def get_one(place_id: int, db: AsyncSession = Depends(get_db)):
+    return await db_maneger.get_places(place_id, db)
+
+
+@app.delete('/places/{place_id}')
+async def delete(id: int, db: AsyncSession = Depends(get_db)):
+    perfo = await db_maneger.get_places(id, db)
+    if not perfo:
+        raise HTTPException(status_code=404, detail="not found")
+
+    await db_maneger.delete_places(id, db)
+
+    await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+    return {'message': 'places delete'}
+
+
+@app.put('/places/{place_id}', response_model=placesIn)
+async def update(id: int, pla: placesUpdate, db: AsyncSession = Depends(get_db)):
+    perfo = await db_maneger.get_places(id, db)
+    if not perfo:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    await update_places(id, pla.dict(exclude_unset=True), db)
+
+    await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+    return await db_maneger.get_places(id, db)
+
+
+@app.get('/show/', response_model=list[showsOut])
+async def get_all_(db: AsyncSession = Depends(get_db)):
+    return await db_maneger.get_all_shows(db)
+
+
+@app.post('/show/')
+async def add(sh: showsIn, db: AsyncSession = Depends(get_db)):
+    await db_maneger.add_shows(sh, db)
+    await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+
+    return {'message': "performance add"}
+
+
+@app.get('/show/{show_id}', response_model=showsIn)
+async def get_one(show_id: int, db: AsyncSession = Depends(get_db)):
+    return await db_maneger.get_shows(show_id, db)
+
+
+@app.delete('/show/{show_id}')
+async def delete(id: int, db: AsyncSession = Depends(get_db)):
+    perfo = await db_maneger.get_shows(id, db)
+    if not perfo:
+        raise HTTPException(status_code=404, detail="not found")
+
+    await db_maneger.delete_shows(id, db)
+
+    await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+    return {'message': 'places delete'}
+
+
+@app.put('/show/{show_id}', response_model=showsIn)
+async def update(id: int, pla: showUpdate, db: AsyncSession = Depends(get_db)):
+    perfo = await db_maneger.get_shows(id, db)
+    if not perfo:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    await update_shows(id, pla.dict(exclude_unset=True), db)
+
+    await db.commit()
+    for instance in db:
+        await db.refresh(instance)
+    return await db_maneger.get_shows(id, db)

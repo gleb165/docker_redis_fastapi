@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.api.db import metadata
+from app.api.db_model import metadata
 
 
 # this is the Alembic Config object, which provides

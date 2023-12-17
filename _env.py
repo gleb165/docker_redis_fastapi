@@ -6,7 +6,7 @@ from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 #This line ensures that the models are imported and available for Alembic to work with
-from app.api.db import metadata, performances
+from app.api.db_model import metadata, performances
 # Replace 'your_module' with your actual module
 
 #Use the your_module.metadata instead of Base.metadata
