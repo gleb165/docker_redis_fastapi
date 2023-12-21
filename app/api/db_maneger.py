@@ -44,6 +44,10 @@ async def get_all_places(db: AsyncSession):
     #return await database.fetch_all(query=performances.select())
 
 
+
+
+
+
 async def get_places(id: int, db: AsyncSession):
     return (await db.execute(places.select(places.c.id == id))).fetchone()
 
@@ -89,3 +93,11 @@ async def update_shows(id: int, sh: showsIn, db: AsyncSession):
                             .update()
                             .where(show.c.id == id)
                             .values(**sh))
+
+
+# class showsIn(BaseModel):
+#     price: int
+#     time_start: datetime
+#     busy: int
+#     place_id: int
+#     performances_id: int

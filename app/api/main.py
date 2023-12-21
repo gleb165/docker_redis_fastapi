@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Header, HTTPException, Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.api.db_model import show
 from app.api.db_model import AsyncSessionLocal
 from app.api.db_maneger import update_performance, update_shows, update_places
 from app.api.models import (PerformancesIn, PerformancesUpdate, PerformancesOut, placesIn, placesOut, placesUpdate, showsIn, showsOut, showUpdate)
@@ -163,3 +163,21 @@ async def update(id: int, pla: showUpdate, db: AsyncSession = Depends(get_db)):
     for instance in db:
         await db.refresh(instance)
     return await db_maneger.get_shows(id, db)
+
+
+
+
+
+@app.get("/subtract_tickets/{num_to_subtract}/{id}")
+async def subtract_tickets(num_to_subtract: int, id: int, db: AsyncSession = Depends(get_db)):
+    show_in_row = (await db.execute(show.select().with_only_columns([show.c.busy]).where(show.c.id == id))).all()
+    current_busy = show_in_row[0]
+    current_busy = current_busy['busy']
+
+    if current_busy >= num_to_subtract:
+        new_busy = current_busy - num_to_subtract
+        await db.execute(show.update().values(busy=new_busy).where(show.c.id == id))
+        await db.commit()
+        return {"message": f"Subtracted {num_to_subtract} tickets. Remaining tickets: {new_busy}"}
+    else:
+        raise HTTPException(status_code=400, detail="Not enough tickets available.")
